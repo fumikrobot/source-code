@@ -35,6 +35,7 @@ Arduino code for robot is at https://github.com/fumikrobot/source-code/blob/main
 3.1 Your Picture need to draw
 
 3.2 Convert picture to vector (*.svg file) by CorelDraw (or any other software support *.svg file)
+<br/>
 (see sample file test.cdr -> test.svg at https://github.com/fumikrobot/source-code/tree/main/draw%20file%20prepare)
 
 3.3 Convert vector file to code for Arduino (by MS Excel, download at https://github.com/fumikrobot/source-code/blob/main/draw%20file%20prepare/SVG%20code%20extract.xlsm)

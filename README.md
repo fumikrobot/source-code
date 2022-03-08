@@ -1,8 +1,8 @@
 # Fumik robot
 
-OpenCat is the open-source Arduino and Raspberry Pi-based quadruped robotic pet framework developed by Petoi, the maker of futuristic programmable robotic pets.
+In August 2021, I got an idea to make a robot be able to draw pictures on a wall. After many days researching, designing, and programming, I finally finished a robot that could draw any pattern on a wall.
 
-![](https://github.com/PetoiCamp/NonCodeFiles/blob/master/gif/walk.gif?raw=true)
+![](https://github.com/fumikrobot/NonCodeFiles/blob/main/1.jpg?raw=true)
 
 ![](https://github.com/PetoiCamp/NonCodeFiles/blob/master/gif/run.gif?raw=true)
 

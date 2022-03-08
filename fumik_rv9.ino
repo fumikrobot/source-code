@@ -387,8 +387,8 @@ void find_a_c(float x, float y){
   
   ag1 = atan((x+tan(ag3)*y+e*cos(ag3)+tan(ag3)*e*sin(ag3))/(y+p3*cos(ag3)-tan(ag3)*x+p3*sin(ag3)*tan(ag3)));
   ag2 = atan((y-w2y-cos(ag3)*p4+e*sin(ag3)-(p-x-p4*sin(ag3)-e*cos(ag3))/tan(ag3))/(p-x-p4*sin(ag3)+y/tan(ag3)-w2y/tan(ag3)-cos(ag3)*p4/tan(ag3)));
-  ag4 = PI/2 - ag3 + ag2;
-  ag5 = PI/2 + ag3 - ag1;
+  ag4 = PI - ag3 + ag2;
+  ag5 = PI + ag3 - ag1;
   a = abs((x - p3*sin(ag3) + e*cos(ag3))/cos(ag5));  //find out a
   c = abs((p - x - p4*sin(ag3) - e*cos(ag3))/cos(ag4));  //find out c
   //angle3 = ag3; //save last ag3

@@ -4,13 +4,13 @@ In August 2021, I got an idea to make a robot be able to draw pictures on a wall
 
 ![](https://github.com/fumikrobot/NonCodeFiles/blob/main/1.jpg?raw=true)
 
-![](https://github.com/PetoiCamp/NonCodeFiles/blob/master/gif/run.gif?raw=true)
 
-Inspired by Boston Dynamics' Big Dog, Dr. Rongzhong Li started the project in his dorm in 2016. After one year of R&D, he founded Petoi LLC and devoted all his resources to the startup. The goal is to foster collaboration in quadruped(four-legged) robotic research, education, and engineering development of agile and affordable quadruped robot pets, bring STEM concepts to the mass and inspire newcomers (including many kids and adults) to join the robotic AI revolution to create more applications.
+My key-point in design is using general parts to make robot, so end-users can easily renew parts if repairing is needed. Body frame, motor, bolts and nuts, … are all easily found on the market. Main controller is well-known PCB Arduino Mega compatible with CNC Shield to control two stepper motors that allow robot can traverse by belt.
 
-![](https://github.com/PetoiCamp/NonCodeFiles/blob/master/gif/slope.gif?raw=true)
+![](https://github.com/fumikrobot/NonCodeFiles/blob/main/2.jpg?raw=true)
 
-The project is still a complex system only for skilled makers, yet we want to share our design and work with the community by mass production and bring down the hardware and software costs. OpenCat has been deployed on Petoi's bionic palm-sized, realistic lifelike [cute robot cat Nybble](https://www.petoi.com/collections/robots/products/petoi-nybble-robot-cat?utm_source=github&utm_medium=code&utm_campaign=nybble) and [high-performance robot dog Bittle](https://www.petoi.com/collections/robots/products/petoi-bittle-robot-dog?utm_source=github&utm_medium=code&utm_campaign=bittle). We now have established a production line and can ship these [affordable robotic kits and accessories](https://www.petoi.com/store?utm_source=github&utm_medium=code&utm_campaign=store) worldwide.
+Fumik is now ready for you to hang it on your house wall and start drawing any pictures. You can use Fumik to customize your house with decor picture when you wish; make your house to be special in case of a Christmas, birthday or an anniversary!
+
 
 This project provides a base open-source platform to create amazing programmable gaits, locomotion, and deployment of inverse kinematics quadruped robots and bring simulations to the real world via C/C++/Python programming languages.  Our users have deployed [NVIDIA Issac simulations and reinforcement learning on our robots](https://www.youtube.com/playlist?list=PLHMFXft_rV6MWNGyofDzRhpatxZuUZMdg). Our users have also successfully deployed OpenCat on their DIY 3D-print robot pets.
 

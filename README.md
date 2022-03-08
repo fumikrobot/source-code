@@ -5,6 +5,9 @@ In August 2021, I got an idea to make a robot be able to draw pictures on a wall
 ![](https://github.com/fumikrobot/NonCodeFiles/blob/main/1.jpg?raw=true)
 
 
+
+
+
 My key-point in design is using general parts to make robot, so end-users can easily renew parts if repairing is needed. Body frame, motor, bolts and nuts, … are all easily found on the market. Main controller is well-known PCB Arduino Mega compatible with CNC Shield to control two stepper motors that allow robot can traverse by belt.
 
 ![](https://github.com/fumikrobot/NonCodeFiles/blob/main/2.jpg?raw=true)

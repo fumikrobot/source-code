@@ -1,4 +1,4 @@
-# OpenCat
+# Fumik robot
 
 OpenCat is the open-source Arduino and Raspberry Pi-based quadruped robotic pet framework developed by Petoi, the maker of futuristic programmable robotic pets.
 

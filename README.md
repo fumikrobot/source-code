@@ -10,11 +10,16 @@ My key-point in design is using general parts to make robot, so end-users can ea
 ![](https://github.com/fumikrobot/NonCodeFiles/blob/main/2.jpg?raw=true)
 
 Fumik is now ready for you to hang it on your house wall and start drawing any pictures. You can use Fumik to customize your house with decor picture when you wish; make your house to be special in case of a Christmas, birthday or an anniversary!
+![](https://github.com/fumikrobot/NonCodeFiles/blob/main/3.jpg?raw=true)
+![](https://github.com/fumikrobot/NonCodeFiles/blob/main/5.gif?raw=true)
+
+Fumik is an open source robot! Anyone who loves to understand the robot from the mechanical frame to firmware will be welcome. You can even re-program the robot with Arduino code to start a new way to draw.
+![](https://github.com/fumikrobot/NonCodeFiles/blob/main/4.jpg?raw=true)
 
 
 This project provides a base open-source platform to create amazing programmable gaits, locomotion, and deployment of inverse kinematics quadruped robots and bring simulations to the real world via C/C++/Python programming languages.  Our users have deployed [NVIDIA Issac simulations and reinforcement learning on our robots](https://www.youtube.com/playlist?list=PLHMFXft_rV6MWNGyofDzRhpatxZuUZMdg). Our users have also successfully deployed OpenCat on their DIY 3D-print robot pets.
 
-![](https://github.com/PetoiCamp/NonCodeFiles/blob/master/gif/stand.gif?raw=true)
+![](https://github.com/fumikrobot/NonCodeFiles/blob/main/3.jpg?raw=true)
 
 ![](https://github.com/PetoiCamp/NonCodeFiles/blob/master/gif/NybbleBalance.gif?raw=true)
 

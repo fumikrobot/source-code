@@ -54,8 +54,6 @@ Visit robot at https://www.fumik.com/
 <br/>
 Watch video during Fumik working:
 <br/>
-<p align="center">
 [![IMAGE ALT TEXT](https://github.com/fumikrobot/NonCodeFiles/blob/main/yt.JPG)](https://www.youtube.com/watch?v=y8SzFk0X2KM "Fumik - wall drawing robot")
-  </p>
 <br/>
 I wish to here your response about robot. Thank you.

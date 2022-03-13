@@ -51,4 +51,9 @@ The robot is easy to assemble, set-up for drawing. Let's support robot at Crowfu
 <br/>
 Visit robot at https://www.fumik.com/ 
 <br/>
+<br/>
+Watch video during Fumik working:
+<br/>
+[![IMAGE ALT TEXT](https://github.com/fumikrobot/NonCodeFiles/blob/main/yt.jpg)](https://www.youtube.com/watch?v=y8SzFk0X2KM "Fumik - wall drawing robot")
+<br/>
 I wish to here your response about robot. Thank you.

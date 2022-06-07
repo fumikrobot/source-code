@@ -1,12 +1,15 @@
 //Wall drawing robot - FUMIK
-//Meet me at fumik.com
-//Date: 2022/Mar
+//Meet me at fumik.com - mail baank83@gmail.com
+//Author: Nguyen Huu Phuc - 2022/May. All rights reserved.
+//This code for Arduino MEGA, SD card
+
 
 #include <AccelStepper.h>
 #include <SD.h>                 // for SD card
 #define SD_ChipSelectPin 53     // for SD card
 File myFile;                    // for SD card
-
+#include <Servo.h>              // for servo pen              
+Servo pen_servo;               // for servo pen
 
 const int dirPin_c = 7;
 const int stepPin_c = 4;
@@ -28,24 +31,27 @@ float pen_x, pen_y; //coordinate of pen, unit mm
 float s_a, s_c, s_a_run, s_c_run; //steps for a, c
 float pen_x0, pen_y0, pen_x0_next, pen_y0_next, svg_x0, svg_y0;
 float x_ratio, y_ratio, x_angle, y_angle;
-//int angle3;
+float draw_res; //draw resolution
+float w2y, p;
 
 float g1, g2, step1, step2, r1, r2;
-float stepper_speed;
+float stepper_speed, basic_speed;
 
 boolean pen_pos;  //false = pen at open position; true = pen at write position
 
 void setup() {
   Serial.begin(9600);
+  pen_servo.attach (11); //servo motor is connected to pin 11 Arduino Mega ~ (Z+ End Stop) of Arduino cnc Shield
   pinMode(enPin, OUTPUT);
-  stepper_speed = 1000;
-  stepper_a.setMaxSpeed(500); // 550 - 1000
-  stepper_a.setAcceleration(200000);  //100,0000 - 120,000
-  stepper_a.setSpeed(500);
+  stepper_speed = 250; //unit steps/sec
+  basic_speed = 250;   //unit steps/sec; note: high speed + low resolution (draw_res) will make vibration
+  stepper_a.setMaxSpeed(2000);
+  stepper_a.setAcceleration(200000);  //set to max
+  stepper_a.setSpeed(stepper_speed);
   
-  stepper_c.setMaxSpeed(500); //max 550
-  stepper_c.setAcceleration(200000);
-  stepper_c.setSpeed(500);
+  stepper_c.setMaxSpeed(2000);
+  stepper_c.setAcceleration(200000);  //set to max
+  stepper_c.setSpeed(stepper_speed);
 
   stepper_p.setMaxSpeed(1400); //max 550
   stepper_p.setAcceleration(100000);
@@ -53,24 +59,35 @@ void setup() {
 
   g1 = 63.68; //gear ratio
   g2 = g1;
-  step1 = 32; //step/rev in double mode 64/2 = 32
+  step1 = 32; //step/rev (full-step mode: 32; half-step mode: 64)
   step2 = step1;
-  r1 = 9.45; //radius of wheel mm
-  r2 = 9.50;
+  r1 = 9.5; //radius of wheel mm
+  r2 = 9.5;
   a = 0;
   c = 0;
 
-  x_ratio = 1.0;  //1.104651
-  y_ratio = 1.0;  //0.876712
+  p = 3190;   //mm, distance pin_a to pin_c (horizontal direction) 1600
+  w2y = 40;  //mm, distance pin_a to pin_c (vertical direction)  4
+ 
+  // zero position of pen must be same as in real model
+  pen_x0 = 400;  //mm, computer room: 390-400-310
+  pen_y0 = 700;  //mm, computer room: 900-700-410
+                 //y0 under real -> C-curve up (u)
+                 //y0 over real -> C-curve down (n)
 
-  x_angle = -1.43; //effect to axis y rotation
+  x_ratio = 1.0;  //adjust to change ratio of picture in x_axis
+  y_ratio = 1.0;  //adjust to change ratio of picture in y_axis
+
+  draw_res = 0.7; //mm, draw resolution is 0.7mm (high number -> high draw speed + low resolution)
+
+  x_angle = -1.43; //degree, effect to rotation of picture in x_axis
   x_angle = radians(x_angle);
 
-  y_angle = -0.36;  //effect to axis x rotation
+  y_angle = -0.36;  //degree, effect to rotation of picture in y_axis
   y_angle = radians(y_angle);
 
-  pen_pos = false;  //set "true" if it is already at Open position
-  pen_open_pos();
+  pen_servo.write(50);  //set pen at open position, to make sure pen at open position
+  pen_pos = false;      //now pen at open position, init pen_pos = "false"
 
   // check if SD card mounted or not
   if (!SD.begin(SD_ChipSelectPin)) {  // see if the card is present and can be initialized:
@@ -78,7 +95,7 @@ void setup() {
     return;   // don't do anything more if not
   }
   else{   
-    Serial.println("---------------------------->>>>>>>-------SD ok");
+    Serial.println("---------------------------->>>>>>>-------SD card ok");
   }
   delay(200);
 
@@ -90,14 +107,12 @@ void setup() {
 
 void loop() {
     digitalWrite(enPin, LOW);  //enable stepper motor
-
-    // zero position of pen must be same as in real model
-    pen_x0 = 400;  //840 1000   //my room: 0840-0390-660   /computer room: 390-400
-    pen_y0 = 700;  //990; 1200  //my room: 1200-1350-700   /computer room: 900-700
-                    //y0 under real -> C-curve up (u)
-                    //y0 over real -> C-curve down (n)
     
-  
+    pen_write_pos();
+    delay(1000);
+    pen_open_pos();
+    delay(1000);
+          
     svg_x0 = 0;
     svg_y0 = 0;
   
@@ -224,11 +239,10 @@ void loop() {
       }
     }
 
-
-
   return_home();
   while(1){
     //stop here
+    delay(5000);
     //digitalWrite(enPin, HIGH);  //un-enable stepper motor
   }
 }
@@ -236,96 +250,84 @@ void loop() {
 
 //======================================================SUB PROGRAM====================================
 void move_a_c(float s1, float s2){
-  float sa, sb;
-  sa = 0;
-  sb = 0;
+  int stepper_a_speed, stepper_c_speed; //unit steps/sec
 
-  if (abs(s1)>=abs(s2)){
-    for (long i=0;i<=abs(s1);i++){
-      //steps_a++;
-      if (s1<0) {
-        stepper_a.move(1);  //backward - move up
-        while(stepper_a.distanceToGo() != 0){stepper_a.run();}
-        steps_a--;
-      }
-      else {
-        stepper_a.move(-1); //forward - move down        
-        while(stepper_a.distanceToGo() != 0){stepper_a.run();}
-        steps_a++;
-      }
+  // Set the current position to 0:
+  stepper_a.setCurrentPosition(0);
+  stepper_c.setCurrentPosition(0);
+  
+  if(abs(s1)>=abs(s2)){
+    if(s1<0) {stepper_a_speed = basic_speed;} //speed pos: motor a makes robot move up
+    else stepper_a_speed = -basic_speed;      //speed neg: motor a makes robot move down
 
-      sa = sa + abs(s2/s1); //this will make 2 stepper motor run at same time
-      if (sa-sb>=1){
-        if (s2<0){
-          stepper_c.move(-1); //backward - move up          
-          while(stepper_c.distanceToGo() != 0){stepper_c.run();}
-          steps_c--;
-        }
-        else {
-          stepper_c.move(1);  //forward - move down 
-          while(stepper_c.distanceToGo() != 0){stepper_c.run();}
-          steps_c++;
-        }
-        sb++;
-        //steps_c++;
-      }
-    }
+    if(s2<0) {stepper_c_speed = -abs(s2/s1)*basic_speed;}  //speed pos: motor c makes robot move down
+    else stepper_c_speed = abs(s2/s1)*basic_speed;         //speed neg: motor c makes robot move up
   }
-  //-----------------------------------------------------------------------
-  if (abs(s2)>abs(s1)){
-    for (long i=0;i<abs(s2);i++){
-      //steps_c++;
-      if (s2<0) {
-        stepper_c.move(-1); //backward - move up        
-        while(stepper_c.distanceToGo() != 0){stepper_c.run();}
-        steps_c--;
-      }
-      else {
-        stepper_c.move(1);  //forward - move down         
-        while(stepper_c.distanceToGo() != 0){stepper_c.run();}
-        steps_c++;
-      }
+  else{
+    if(s2<0) {stepper_c_speed = -basic_speed;}  //speed pos: motor c makes robot move down
+    else stepper_c_speed = basic_speed;         //speed neg: motor c makes robot move up
 
-      sa = sa + abs(s1/s2);
-      if (sa-sb>=1){
-        if (s1<0){
-          stepper_a.move(1);  //backward - move up          
-          while(stepper_a.distanceToGo() != 0){stepper_a.run();}
-          steps_a--;
-        }
-        else {
-          stepper_a.move(-1); //forward - move down             
-          while(stepper_a.distanceToGo() != 0){stepper_a.run();}
-          steps_a++;
-        }
-        sb++;
-        //steps_a++;
-      }
-    }
+    if(s1<0) {stepper_a_speed = abs(s1/s2)*basic_speed;}    //speed pos: motor a makes robot move up
+    else stepper_a_speed = -abs(s1/s2)*basic_speed;         //speed neg: motor a makes robot move down
   }
-/*
+
+
+  if (abs(stepper_a_speed) < 5){
+    if (stepper_a_speed < 0) stepper_a_speed = -5;
+    else stepper_a_speed = 5;
+  }
+  if (abs(stepper_c_speed) < 5){
+    if (stepper_c_speed < 0) stepper_c_speed = -5;
+    else stepper_c_speed = 5;
+  }
+  /*
+
+  Serial.print("stepper_a_speed = ");
+  Serial.println(stepper_a_speed);
+  Serial.print("stepper_c_speed = ");
+  Serial.println(stepper_c_speed);
+  Serial.print("s1 = ");
+  Serial.println(s1);
+  Serial.print("s2 = ");
+  Serial.println(s2);
+  */
+  
+
+  // Run the motor
+  while((abs(stepper_a.currentPosition()) < abs((long)s1))||(abs(stepper_c.currentPosition()) < abs((long)s2)))
+  {
+    stepper_a.setSpeed(stepper_a_speed); //speed pos: motor a makes robot move up; 
+    if((abs(stepper_a.currentPosition()) < abs((long)s1))) {stepper_a.runSpeed();}
+    
+    stepper_c.setSpeed(stepper_c_speed); //speed pos: motor c makes robot move down
+    if((abs(stepper_c.currentPosition()) < abs((long)s2))) {stepper_c.runSpeed();}
+  }
+  steps_a += -stepper_a.currentPosition();
+  steps_c += stepper_c.currentPosition();
+
+  
   Serial.print("steps_a = ");
   Serial.println(steps_a);
   Serial.print("steps_c = ");
-  Serial.println(steps_c);*/
+  Serial.println(steps_c);
+  
+  
+  
 }
-
-
 //------------------------------------------------------------------------------------------------
 void find_a_c(float x, float y){
-  //This code for Arduino MEGA, SD card, used for computer room
-  //Setting calibration for computer-room
-  
-  float w2y, d, e, p, p1, p2, p3, p4, f1, ag1, ag2, ag3, ag4, ag5, tan1, tan2;
+  float d, e, p1, p2, p3, p4, f1, ag1, ag2, ag3, ag4, ag5, tan1, tan2;
   float a0, b0, x0, fx0, fa0;
-  w2y = 40;
-  e = 45;
-  d = 50;
-  p = 3190;
-  p1 = 54;
-  p2 = 54;
-  p3 = 52;
-  p4 = 56;
+  //w2y = 450;  //distance motor_a to motor_c (vertical) -> not effect to C-curve problem; origin 40
+  e = 45;   //pen distance mm -> not effect to C-curve problem
+  d = 50;   //gravity distance mm -> not effect to C-curve problem
+  //p = 2170; //distance motor_a to motor_c (horizontal) 2690 2730 my room/ 3190 computer room
+            //below real distance -> make more C-curve ( down?)
+            //over real distance -> C-curve is up
+  p1 = 54;  //distance motor_a to gravity base
+  p2 = 54;  //distance motor_c to gravity base
+  p3 = 52;  //pen distance motor_a to pen base
+  p4 = 56;  //pen distance motor_c to pen base
 
 
     //a0 = 20;
@@ -387,8 +389,8 @@ void find_a_c(float x, float y){
   
   ag1 = atan((x+tan(ag3)*y+e*cos(ag3)+tan(ag3)*e*sin(ag3))/(y+p3*cos(ag3)-tan(ag3)*x+p3*sin(ag3)*tan(ag3)));
   ag2 = atan((y-w2y-cos(ag3)*p4+e*sin(ag3)-(p-x-p4*sin(ag3)-e*cos(ag3))/tan(ag3))/(p-x-p4*sin(ag3)+y/tan(ag3)-w2y/tan(ag3)-cos(ag3)*p4/tan(ag3)));
-  ag4 = PI - ag3 + ag2;
-  ag5 = PI + ag3 - ag1;
+  ag4 = PI/2 - ag3 + ag2;
+  ag5 = PI/2 + ag3 - ag1;
   a = abs((x - p3*sin(ag3) + e*cos(ag3))/cos(ag5));  //find out a
   c = abs((p - x - p4*sin(ag3) - e*cos(ag3))/cos(ag4));  //find out c
   //angle3 = ag3; //save last ag3
@@ -495,7 +497,7 @@ void draw_curve(float p0x, float p0y, float p1x, float p1y, float p2x, float p2y
   p3y = (p3y)*0.0254 + p0y;
 
   len = curve_len(p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y);
-  i_total = len/0.3 + 1;  //total segment to draw for curve, draw resolution 0.1mm
+  i_total = len/draw_res + 1;  //total segment to draw for curve, draw resolution
   
   Serial.println("==============draw curve=====================");
   pen_write_pos();
@@ -526,7 +528,7 @@ void draw_curve(float p0x, float p0y, float p1x, float p1y, float p2x, float p2y
     
         s_a_run = s_a - steps_a;
         s_c_run = s_c - steps_c;
-        
+
         move_a_c(s_a_run, s_c_run);
         i ++;
     } while (i<=i_total);
@@ -579,7 +581,7 @@ void draw_line(float p0x, float p0y, float p1x, float p1y){
   p1y = (p1y)*0.0254 + p0y;
   
   len = line_len(p0x, p0y, p1x, p1y);
-  i_total = len/0.3 + 1;  //total segment to draw for curve
+  i_total = len/draw_res + 1;  //total segment to draw for line, draw resolution
   
   Serial.println("==============draw line=====================");
   pen_write_pos();
@@ -619,6 +621,10 @@ void draw_line(float p0x, float p0y, float p1x, float p1y){
 void move_pen_abs(float x, float y){
   float x_relative, y_relative, x_move, y_move;
   float x_temp, y_temp;
+  float basic_speed_for_save;
+
+  basic_speed_for_save = basic_speed;
+  basic_speed = 500; //set high speed when moving without drawing
 
   x = x*x_ratio;
   y = y*y_ratio;
@@ -672,6 +678,8 @@ void move_pen_abs(float x, float y){
 
   pen_x0_next = x_move;
   pen_y0_next = y_move;
+
+  basic_speed = basic_speed_for_save;; //return to basic speed after high speed
 }
 
 
@@ -681,7 +689,6 @@ void move_pen_rel(float x, float y){
   //x = x*x_ratio;
   //y = y*y_ratio;
   
-  //pen_open_pos();
   pen_x0_save = pen_x0;
   pen_y0_save = pen_y0;
 
@@ -726,19 +733,29 @@ void return_home(){
 }
 
 void pen_write_pos(){
+  int servo_position; //this variable for pen driver by servo motor SG90
   if (pen_pos==false){
-    stepper_p.move(-2380);  //origin: -2900
-    while(stepper_p.distanceToGo() != 0){stepper_p.run();}
+    // this program for pen driver by servo motor SG90
+    Serial.println("-------------------------------------------------- set pen at write position");
+    for (servo_position = 50; servo_position >0; servo_position--){
+      pen_servo.write(servo_position);
+      delay(20);
+    }
   }
-  pen_pos = true;
+  pen_pos = true; //now, pen at write position
 }
 
 void pen_open_pos(){
+  int servo_position; //this variable for pen driver by servo motor SG90
   if (pen_pos==true){
-    stepper_p.move(2390); //origin: 2800
-    while(stepper_p.distanceToGo() != 0){stepper_p.run();}
+    // this program for pen driver by servo motor SG90
+    Serial.println("-------------------------------------------------- set pen at open position");
+    for (servo_position = 0; servo_position <50; servo_position++){
+      pen_servo.write(servo_position);
+      delay(20);
+    }
   }
-  pen_pos = false;
+  pen_pos = false;  //now, pen at open position
 }
 
 String read_until (char char_stop){
